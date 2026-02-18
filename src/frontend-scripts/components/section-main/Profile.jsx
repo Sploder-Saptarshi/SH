@@ -7,7 +7,7 @@ import cn from 'classnames';
 import { PLAYERCOLORS } from '../../constants';
 import Swal from 'sweetalert2';
 import $ from 'jquery';
-import { Dropdown } from 'semantic-ui-react';
+import { Dropdown, Popup } from 'semantic-ui-react';
 import moment from 'moment';
 import CollapsibleSegment from '../reusable/CollapsibleSegment.jsx';
 import UserPopup from '../reusable/UserPopup.jsx';
@@ -202,13 +202,24 @@ class ProfileWrapper extends React.Component {
 
 	Actions() {
 		const { actions } = this.props.profile.stats;
+		const voteAccuracyTooltip =
+			'Liberal only. Percentage of NEIN votes on dangerous governments (president fascist or chancellor Hitler in hitler zone). Since February 2026, dangerous governments also include any fascist being in government in veto zone.';
+		const shotAccuracyTooltip = 'Liberal only. The percentage of your execution targets being fascist-aligned.';
 
 		return (
 			<Table
 				headers={['Action', 'Instances', 'Success Rate']}
 				rows={[
-					this.successRow('Vote Accuracy', actions.voteAccuracy.events, actions.voteAccuracy.successes),
-					this.successRow('Shot Accuracy', actions.shotAccuracy.events, actions.shotAccuracy.successes)
+					this.successRow(
+						<Popup inverted position="top center" content={voteAccuracyTooltip} trigger={<span style={{ cursor: 'help' }}>Vote Accuracy</span>} />,
+						actions.voteAccuracy.events,
+						actions.voteAccuracy.successes
+					),
+					this.successRow(
+						<Popup inverted position="top center" content={shotAccuracyTooltip} trigger={<span style={{ cursor: 'help' }}>Shot Accuracy</span>} />,
+						actions.shotAccuracy.events,
+						actions.shotAccuracy.successes
+					)
 				]}
 			/>
 		);
@@ -253,7 +264,7 @@ class ProfileWrapper extends React.Component {
 					<>
 						<img
 							style={{ padding: '2px', display: 'inline', cursor: 'pointer' }}
-							src={`../images/badges/${x.id.startsWith('eloReset') ? 'eloReset' : x.id}.png`}
+							src={x.id === 'xp10' ? '../images/rainbowLarge.png' : `../images/badges/${x.id.startsWith('eloReset') ? 'eloReset' : x.id}.png`}
 							alt={x.title}
 							key={x.id}
 							height={50}
@@ -261,7 +272,7 @@ class ProfileWrapper extends React.Component {
 								Swal.fire({
 									title: x.title,
 									text: `${x.text || ''} Earned: ${moment(x.dateAwarded).format('MM/DD/YYYY HH:mm')}.`,
-									imageUrl: `../images/badges/${x.id.startsWith('eloReset') ? 'eloReset' : x.id}.png`,
+									imageUrl: x.id === 'xp10' ? '../images/rainbowLarge.png' : `../images/badges/${x.id.startsWith('eloReset') ? 'eloReset' : x.id}.png`,
 									imageWidth: 100
 								})
 							}
@@ -624,10 +635,12 @@ class ProfileWrapper extends React.Component {
 
 	NotFound() {
 		return (
-			<h1 className="not-found ui icon center aligned header">
-				<i className="settings icon" />
-				<div className="content">No profile</div>
-			</h1>
+			<div>
+				<h1 className="not-found ui icon center aligned header">
+					<i className="settings icon" />
+					<div className="content">No profile</div>
+				</h1>
+			</div>
 		);
 	}
 

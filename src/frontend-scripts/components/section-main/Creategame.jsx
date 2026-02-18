@@ -49,6 +49,9 @@ export default class Creategame extends React.Component {
 			flappyMode: false,
 			flappyOnlyMode: false,
 			privateAnonymousRemakes: false,
+			avalonSH: false,
+			withPercival: false,
+			monarchistSH: false,
 			customGameSettings: {
 				enabled: false,
 				// Valid powers: investigate, deckpeek, election, bullet; null for no power
@@ -954,7 +957,11 @@ export default class Creategame extends React.Component {
 
 		customGameSettings.fascistCount = val[0];
 		customGameSettings.enabled = true;
-		this.setState({ gameType: 'custom', customGameSettings });
+		const newState = { gameType: 'custom', customGameSettings };
+		if (val[0] === 1 && this.state.monarchistSH && this.state.avalonSH && this.state.withPercival) {
+			newState.monarchistSH = false;
+		}
+		this.setState(newState);
 	};
 
 	sliderHitlerZone = val => {
@@ -1001,8 +1008,7 @@ export default class Creategame extends React.Component {
 
 	sliderChange = sliderValues => {
 		const { checkedSliderValues } = this.state;
-
-		this.setState({
+		const newState = {
 			sliderValues,
 			checkedSliderValues: new Array(6)
 				.fill(true)
@@ -1012,7 +1018,11 @@ export default class Creategame extends React.Component {
 						index + 5 === sliderValues[0] ||
 						index + 5 === sliderValues[1]
 				)
-		});
+		};
+		if (sliderValues[0] <= 6 && this.state.monarchistSH && this.state.avalonSH && this.state.withPercival) {
+			newState.monarchistSH = false;
+		}
+		this.setState(newState);
 	};
 
 	customGameSliderChange = sliderValues => {
@@ -1103,10 +1113,14 @@ export default class Creategame extends React.Component {
 			const minPlayers = Math.min(...includedPlayerCounts);
 			const maxPlayers = Math.max(...includedPlayerCounts);
 
-			this.setState({
+			const newState = {
 				checkedSliderValues: newSliderValues,
 				sliderValues: [minPlayers, maxPlayers]
-			});
+			};
+			if (includedPlayerCounts.some(p => p <= 6) && this.state.monarchistSH && this.state.avalonSH && this.state.withPercival) {
+				newState.monarchistSH = false;
+			}
+			this.setState(newState);
 		};
 
 		return (
@@ -2062,7 +2076,7 @@ export default class Creategame extends React.Component {
 								return (
 									<div className="four wide column experiencedmode">
 										<img src="../images/rainbow.png" />
-										<h4 className="ui header">Rainbow game - only fellow 50+ game veterans can be seated in this game</h4>
+										<h4 className="ui header">Rainbow game - only fellow 10+ exp veterans can be seated in this game</h4>
 										<Switch
 											className="create-game-switch"
 											onChange={checked => {
@@ -2216,8 +2230,12 @@ export default class Creategame extends React.Component {
 								<Switch
 									className="create-game-switch"
 									onChange={checked => {
+										const hasOnlyOneFascist =
+											(this.state.customGameSettings.enabled && this.state.customGameSettings.fascistCount === 1) ||
+											(!this.state.customGameSettings.enabled && this.state.sliderValues[0] <= 6);
 										this.setState({
-											withPercival: checked
+											withPercival: checked,
+											monarchistSH: checked && hasOnlyOneFascist ? false : this.state.monarchistSH
 										});
 									}}
 									checked={this.state.avalonSH && this.state.withPercival}
@@ -2233,12 +2251,16 @@ export default class Creategame extends React.Component {
 						</div>
 						<div className="four wide column">
 							<i className="big chess king icon" />
-							<h4 className="ui header">Monarchist mode - adds a custom fascist role, casual only</h4>
+							<h4 className="ui header">Monarchist mode - adds a custom fascist role that wins on 6 fascist policies or executing hitler, casual only</h4>
 							<Switch
 								className="create-game-switch"
 								onChange={checked => {
+									const hasOnlyOneFascist =
+										(this.state.customGameSettings.enabled && this.state.customGameSettings.fascistCount === 1) ||
+										(!this.state.customGameSettings.enabled && this.state.sliderValues[0] <= 6);
 									this.setState({
 										monarchistSH: checked,
+										withPercival: checked && hasOnlyOneFascist ? false : this.state.withPercival,
 										gameType: checked ? 'casual' : this.state.privateShowing || this.state.privateonlygame ? 'private' : 'ranked'
 									});
 								}}
